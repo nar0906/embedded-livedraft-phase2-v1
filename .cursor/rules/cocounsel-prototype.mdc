@@ -1,0 +1,131 @@
+---
+description: CoCounsel Prototype Design System Guidelines
+alwaysApply: true
+---
+
+# CoCounsel Prototype Design System
+
+This project uses the CoCounsel 3.0 design system. Follow these guidelines when building prototypes.
+
+## Design Tokens
+
+### Import Paths
+```typescript
+import { coreColors, systemColors, componentColors } from '@/src/tokens/colors';
+import typography from '@/src/tokens/typography';
+import spacing from '@/src/tokens/spacing';
+import borders from '@/src/tokens/borders';
+import shadows from '@/src/tokens/shadows';
+import layout from '@/src/tokens/layout';
+```
+
+### Color Token Tiers
+1. **Core tokens** (`coreColors`) - Raw color values (e.g., `coreColors.racingGreen[700]`)
+2. **System tokens** (`systemColors`) - Semantic purpose (e.g., `systemColors.text.heavy`)
+3. **Component tokens** (`componentColors`) - Component-specific (e.g., `componentColors.card.background.hover`)
+
+**Rule**: Always prefer system tokens over core tokens for maintainability.
+
+### Primary Brand Colors
+- Racing Green: `coreColors.racingGreen[700]` (#1D4B34) - Primary brand color
+- Orange: `coreColors.orange[500]` (#D64000) - Secondary/accent color
+- Sky Blue: `coreColors.sky[600]` (#0062C4) - Links and info
+
+## Typography
+
+### Font Families
+- **Headings**: Clario (`typography.fontFamily.heading`)
+- **Body text**: Source Sans 3 (`typography.fontFamily.primary`)
+- **Icons**: Font Awesome 6 Sharp (`typography.fontFamily.icons`)
+
+### Font Sizes (4px grid)
+- xs: 12px, sm: 14px, md: 16px, lg: 20px, xl: 24px, 2xl: 28px, 3xl: 32px, 4xl: 40px
+
+## Spacing
+
+Based on 4px grid. Use `spacing[n]` where n is the multiplier:
+- spacing[1] = 4px, spacing[2] = 8px, spacing[3] = 12px, spacing[4] = 16px, etc.
+
+## Icons
+
+### SharpIcon Component (FA6 Sharp Pro - Light)
+Use for most UI icons to match Figma designs:
+```tsx
+import SharpIcon from '@/components/icons/SharpIcon';
+<SharpIcon name="paperclip" size={16} color={systemColors.text.subtle} />
+<SharpIcon name="star" size={16} solid /> // Solid variant
+```
+
+### Icon Component (React Font Awesome)
+Use for standard Font Awesome icons:
+```tsx
+import { Icon, faHouse } from '@/components/icons';
+<Icon icon={faHouse} size="lg" color="#1D4B34" />
+```
+
+### Common SharpIcon Names
+- Navigation: `arrow-left`, `chevron-down`, `xmark`
+- Actions: `plus`, `upload`, `pen-to-square`, `trash`
+- Files: `file`, `folder`, `book-sparkles`
+- UI: `magnifying-glass`, `sliders`, `gear`, `circle-info`
+
+## Component Styling
+
+Use MUI styled components:
+```tsx
+import { styled } from '@mui/material/styles';
+import { Box, Button } from '@mui/material';
+
+const StyledContainer = styled(Box)({
+  backgroundColor: systemColors.background.default,
+  padding: spacing[4],
+  borderRadius: borders.radius.sm,
+});
+```
+
+## Interactive States
+
+For buttons and interactive elements:
+```tsx
+// Primary button
+backgroundColor: systemColors.interactive.primary.background.default,
+'&:hover': { backgroundColor: systemColors.interactive.primary.background.hover },
+
+// Secondary button
+backgroundColor: systemColors.interactive.secondary.background.default,
+'&:hover': { backgroundColor: systemColors.interactive.secondary.background.hover },
+
+// Tertiary (ghost) button
+backgroundColor: systemColors.interactive.tertiary.background.default,
+'&:hover': { backgroundColor: systemColors.interactive.tertiary.background.hover },
+```
+
+## Reusable Components
+
+### Available Core Components
+- `HomeView` - Home screen with chat input
+- `LibraryView` - Library with tabs (Prompts, Models, Policies, Playbooks)
+- `CoCounselSidebar` - Left navigation sidebar
+
+### Usage
+```tsx
+import CoCounselSidebar from '@/components/core/CoCounselSidebar';
+import HomeView from '@/components/core/HomeView';
+import LibraryView from '@/components/core/LibraryView';
+```
+
+## Creating New Screens
+
+1. Create new component in `components/` or `app/`
+2. Use `styled` from MUI for styling
+3. Import tokens for consistent design
+4. Follow the patterns in HomeView/LibraryView
+
+## Vercel Deployment
+
+This starter is configured for Vercel deployment:
+1. Push to GitHub
+2. Import in Vercel
+3. Deploy automatically
+
+No environment variables required for basic prototypes.
