@@ -3,8 +3,8 @@ import './globals.css';
 import ThemeRegistry from './ThemeRegistry';
 
 export const metadata: Metadata = {
-  title: 'CoCounsel Prototype',
-  description: 'CoCounsel prototype built with the starter kit',
+  title: 'Embedded Livedraft Phase 2 V1',
+  description: 'Embedded Livedraft Phase 2 prototype',
 };
 
 export default function RootLayout({

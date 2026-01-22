@@ -187,9 +187,34 @@ const PromptCard = styled(Box)({
   width: '100%',
   boxSizing: 'border-box',
   transition: 'background-color 0.15s ease-in-out, border-color 0.15s ease-in-out',
+  
+  // Non-starred star button hidden by default
+  '& button.prompt-hover-actions': {
+    opacity: 0,
+    width: 0,
+    padding: 0,
+    overflow: 'hidden',
+  },
+  
   '&:hover': {
     backgroundColor: coreColors.racingGreen[200],
     borderColor: systemColors.border.strong,
+  },
+  
+  '&:hover .prompt-hover-actions': {
+    opacity: 1,
+    width: 'auto',
+  },
+  
+  '&:hover button.prompt-hover-actions': {
+    opacity: 1,
+    width: 'auto',
+    padding: spacing[1],
+  },
+  
+  // Truncate title more on hover to make room for buttons
+  '&:hover .prompt-title-wrapper': {
+    maxWidth: 'calc(100% - 100px)', // Leave room for star + edit + delete buttons
   },
 });
 
@@ -208,6 +233,7 @@ const PromptTitleWrapper = styled(Box)({
   flex: 1,
   minWidth: 0,
   overflow: 'hidden',
+  transition: 'max-width 0.15s ease-in-out',
 });
 
 const PromptTitle = styled('h3')({
@@ -233,6 +259,64 @@ const PromptBadge = styled('span')({
   whiteSpace: 'nowrap',
   flexShrink: 0,
 });
+
+const PromptActionsWrapper = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: spacing[1], // 4px gap between icons
+  flexShrink: 0,
+  marginLeft: 'auto', // Push to the right edge
+});
+
+const PromptHoverActions = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: spacing[1],
+  opacity: 0,
+  width: 0,
+  overflow: 'hidden',
+  transition: 'opacity 0.15s ease-in-out, width 0.15s ease-in-out',
+});
+
+const PromptIconButton = styled('button')({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: spacing[1], // 4px padding
+  background: 'none',
+  border: '1px solid transparent',
+  borderRadius: borders.radius.xs,
+  color: coreColors.gray[600],
+  cursor: 'pointer',
+  transition: 'all 0.15s ease-in-out',
+  
+  '&:hover': {
+    backgroundColor: coreColors.racingGreen[200], // subtle green
+    borderColor: systemColors.border.strong,
+    color: coreColors.graphite,
+  },
+});
+
+const StarButton = styled('button')<{ isStarred?: boolean }>(({ isStarred }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: spacing[1],
+  background: 'none',
+  border: '1px solid transparent',
+  borderRadius: borders.radius.xs,
+  color: isStarred ? coreColors.racingGreen[500] : coreColors.gray[600],
+  cursor: 'pointer',
+  transition: 'all 0.15s ease-in-out',
+  // When not starred, hide by default (controlled by prompt-hover-actions class)
+  opacity: isStarred ? 1 : undefined,
+  
+  '&:hover': {
+    backgroundColor: coreColors.racingGreen[200], // subtle green
+    borderColor: systemColors.border.strong,
+    color: isStarred ? coreColors.racingGreen[600] : coreColors.graphite,
+  },
+}));
 
 const PromptDescription = styled('p')({
   fontFamily: typography.fontFamily.primary,
@@ -315,6 +399,21 @@ export default function LibraryView({ onImportPlaybook, onBack, defaultTab = 'pr
   const [activeTab, setActiveTab] = useState<'prompts' | 'models' | 'policies' | 'playbooks'>(defaultTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [starredPrompts, setStarredPrompts] = useState<Set<string>>(
+    new Set(samplePrompts.filter(p => p.isStarred).map(p => p.id))
+  );
+
+  const toggleStar = (promptId: string) => {
+    setStarredPrompts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(promptId)) {
+        newSet.delete(promptId);
+      } else {
+        newSet.add(promptId);
+      }
+      return newSet;
+    });
+  };
 
   const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setMenuAnchor(event.currentTarget);
@@ -414,12 +513,40 @@ export default function LibraryView({ onImportPlaybook, onBack, defaultTab = 'pr
             .map((prompt) => (
               <PromptCard key={prompt.id}>
                 <PromptCardHeader>
-                  <PromptTitleWrapper>
+                  <PromptTitleWrapper className="prompt-title-wrapper">
                     <PromptTitle>{prompt.title}</PromptTitle>
                     {prompt.badges?.map((badge) => (
                       <PromptBadge key={badge}>{badge}</PromptBadge>
                     ))}
                   </PromptTitleWrapper>
+                  <PromptActionsWrapper>
+                    {/* Star - filled when starred (always visible), outline when not (visible on hover) */}
+                    <StarButton 
+                      isStarred={starredPrompts.has(prompt.id)}
+                      className={starredPrompts.has(prompt.id) ? '' : 'prompt-hover-actions'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleStar(prompt.id);
+                      }}
+                      title={starredPrompts.has(prompt.id) ? 'Unstar' : 'Star'}
+                    >
+                      <SharpIcon 
+                        name="star" 
+                        size={16} 
+                        color="currentColor" 
+                        solid={starredPrompts.has(prompt.id)}
+                      />
+                    </StarButton>
+                    {/* Edit & Delete - visible on hover */}
+                    <PromptHoverActions className="prompt-hover-actions">
+                      <PromptIconButton onClick={(e) => e.stopPropagation()} title="Edit">
+                        <SharpIcon name="pen-to-square" size={16} color="currentColor" />
+                      </PromptIconButton>
+                      <PromptIconButton onClick={(e) => e.stopPropagation()} title="Delete">
+                        <SharpIcon name="trash" size={16} color="currentColor" />
+                      </PromptIconButton>
+                    </PromptHoverActions>
+                  </PromptActionsWrapper>
                 </PromptCardHeader>
                 <PromptDescription>{prompt.description}</PromptDescription>
               </PromptCard>
